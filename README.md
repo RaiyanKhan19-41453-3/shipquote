@@ -15,16 +15,20 @@ through the `golang:1.23-bookworm` image.
 ## Run it
 
 ```bash
-docker compose up --build -d   # .env ships with working defaults
-curl localhost:8080/healthz   # {"status":"ok"}
+docker compose up --build -d
+curl localhost:8081/healthz
 ```
+
+On a machine where 5432 or 8080 are already taken, run with
+different host ports instead: `DB_PORT=5433 HOST_PORT=8081 docker compose up --build -d`,
+then talk to `localhost:8081`. Container to container addresses stay the same.
 
 ## Try it
 
 Compare carriers for a 2kg Dhaka to Chittagong parcel:
 
 ```bash
-curl "localhost:8080/rates?from=DHK&to=CTG&weight=2"
+curl "localhost:8081/rates?from=DHK&to=CTG&weight=2"
 ```
 
 ```json
@@ -34,7 +38,7 @@ curl "localhost:8080/rates?from=DHK&to=CTG&weight=2"
 Book the cheapest option. Safe to retry, same key means same order:
 
 ```bash
-curl -X POST localhost:8080/orders \
+curl -X POST localhost:8081/orders \
   -H 'Content-Type: application/json' \
   -d '{"idempotency_key":"order-1","from":"DHK","to":"CTG","weight":2}'
 # first time: 201 with "duplicate": false
