@@ -63,9 +63,13 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.GET("/healthz", func(c *gin.Context) { h.Healthz(c.Writer, c.Request) })
-	r.GET("/rates", func(c *gin.Context) { h.Rates(c.Writer, c.Request) })
-	r.POST("/orders", func(c *gin.Context) { h.Orders(c.Writer, c.Request) })
+
+	// Logged group, the Gin version of a Laravel middleware group:
+	// everything registered here passes through GinLogging.
+	api := r.Group("/", middleware.GinLogging("/healthz"))
+	api.GET("/rates", func(c *gin.Context) { h.Rates(c.Writer, c.Request) })
+	api.POST("/orders", func(c *gin.Context) { h.Orders(c.Writer, c.Request) })
 
 	log.Printf("shipquote listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, middleware.Logging(r)))
+	log.Fatal(http.ListenAndServe(":"+port, middleware.Logging(r, middleware.SkippedPaths("/healthz"))))
 }
