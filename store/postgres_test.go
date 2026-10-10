@@ -24,6 +24,20 @@ func TestCreateIsIdempotent(t *testing.T) {
 	defer db.Close()
 	ctx := context.Background()
 	s := New(db)
+	// The test owns its schema: CI hands us a blank database, so create
+	// the table here instead of assuming the server already migrated it.
+	if _, err := db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS orders (
+		id SERIAL PRIMARY KEY,
+		idempotency_key TEXT UNIQUE NOT NULL,
+		origin TEXT NOT NULL,
+		destination TEXT NOT NULL,
+		weight_kg DOUBLE PRECISION NOT NULL,
+		carrier TEXT NOT NULL,
+		price_bdt DOUBLE PRECISION NOT NULL,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+	)`); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := db.ExecContext(ctx, `TRUNCATE orders`); err != nil {
 		t.Fatal(err)
 	}
